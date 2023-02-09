@@ -31,16 +31,16 @@ const handler: MiddlewareHandler = async(request) => {
   delete userInfoWithoutId._id;
 
   // Save user info to DB
-  await $db.users.updateOne({
+  const dbResult = await $db.users.findOneAndUpdate({
     telegramId: userInfo.telegramId
   }, {
     $set: {
       ...userInfoWithoutId
     }
-  }, {upsert: true});
+  }, {upsert: true, returnDocument: "after"});
 
   // Send socket data to client
-  io.to(socketId).emit("authentication", userId);
+  io.to(socketId).emit("authentication", dbResult.value?._id);
 
   // Send OK
   return new Response(200, "OK");
